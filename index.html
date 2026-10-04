@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мой день — трекер привычек и планер задач</title>
+<style>
+  :root {
+    --cream: #fdf9f3;
+    --beige: #f5ead8;
+    --sand: #e8d9be;
+    --navy: #1f3a5f;
+    --navy-dark: #152a45;
+    --gold: #d4a574;
+    --orange: #e89b5e;
+    --green: #5fa863;
+    --yellow: #e0b040;
+    --red: #d9534f;
+    --gray: #9aa5b1;
+    --text: #2c3e50;
+    --text-light: #6b7a8a;
+    --white: #ffffff;
+    --shadow: 0 4px 20px rgba(31,58,95,0.08);
+    --shadow-hover: 0 12px 40px rgba(31,58,95,0.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* МЕНЮ */
+  nav {
+    background: var(--navy);
+    padding: 16px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav .logo {
+    color: #fff;
+    font-size: 22px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  nav .logo span { color: var(--gold); }
+  nav .date {
+    color: var(--sand);
+    font-size: 15px;
+  }
+
+  /* ВКЛАДКИ */
+  .tabs {
+    display: flex;
+    background: var(--navy-dark);
+    padding: 0 20px;
+    overflow-x: auto;
+    position: sticky;
+    top: 62px;
+    z-index: 99;
+  }
+  .tab {
+    background: transparent;
+    border: none;
+    color: var(--sand);
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .tab:hover { color: #fff; }
+  .tab.active {
+    color: #fff;
+    border-bottom-color: var(--gold);
+  }
+
+  /* СЕКЦИИ */
+  .section {
+    display: none;
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    animation: fadeUp 0.5s ease;
+  }
+  .section.active { display: block; }
+
+  .section-header {
+    margin-bottom: 30px;
+  }
+  .section-header h1 {
+    font-size: 32px;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  .section-header p {
+    color: var(--text-light);
+    font-size: 16px;
+  }
+
+  /* КАРТОЧКИ */
+  .card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    animation: slideIn 0.5s ease;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+
+  /* КНОПКИ */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: var(--navy);
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: var(--navy-dark);
+    transform: translateY(-2px);
+  }
+  .btn-gold {
+    background: var(--gold);
+    color: #fff;
+  }
+  .btn-gold:hover { background: #c19060; }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-green:hover { background: #4a8c4d; }
+  .btn-yellow { background: var(--yellow); color: #fff; }
+  .btn-yellow:hover { background: #c99832; }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-red:hover { background: #b8423e; }
+  .btn-gray { background: var(--gray); color: #fff; }
+  .btn-gray:hover { background: #7a8797; }
+  .btn-sm {
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  /* ЕЖЕДНЕВНО */
+  .progress-info {
+    background: var(--white);
+    padding: 20px 24px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .progress-info .top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .progress-bar {
+    background: var(--beige);
+    height: 14px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: linear-gradient(90deg, var(--gold), var(--orange));
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+
+  .habit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .habit {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--white);
+    padding: 18px 22px;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .habit:hover { transform: translateX(6px); }
+  .habit.done {
+    background: #eef7ee;
+    opacity: 0.75;
+  }
+  .habit.done .habit-text {
+    text-decoration: line-through;
+    color: var(--text-light);
+  }
+  .habit-check {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--navy);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: transparent;
+    transition: all 0.3s;
+    flex-shrink: 0;
+    background: #fff;
+  }
+  .habit.done .habit-check {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+  .habit-text {
+    font-size: 18px;
+    font-weight: 500;
+    flex: 1;
+  }
+  .habit-delete {
+    background: transparent;
+    border: none;
+    color: var(--gray);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 6px;
+    transition: color 0.3s;
+  }
+  .habit-delete:hover { color: var(--red); }
+
+  /* ВАЖНО — КАНБАН */
+  .kanban {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .kanban-col {
+    background: var(--beige);
+    border-radius: 16px;
+    padding: 16px;
+    min-height: 400px;
+  }
+  .kanban-col h3 {
+    font-size: 16px;
+    color: var(--navy);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--sand);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .kanban-col h3 .count {
+    background: var(--navy);
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+  }
+  .kanban-col.done-col { background: #e8f0e8; }
+  .kanban-col.proc-col { background: #fdf0dc; }
+  .kanban-col.todo-col { background: #f0e6f0; }
+
+  .task {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(31,58,95,0.08);
+    transition: all 0.3s;
+    border-left: 5px solid var(--gray);
+    animation: fadeUp 0.4s ease;
+  }
+  .task:hover { box-shadow: 0 6px 20px rgba(31,58,95,0.15); }
+  .task.prio-high { border-left-color: var(--red); }
+  .task.prio-mid { border-left-color: var(--yellow); }
+  .task.prio-low { border-left-color: var(--green); }
+
+  .task-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  .task-meta {
+    font-size: 13px;
+    color: var(--text-light);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .task-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge-high { background: #fce4e4; color: var(--red); }
+  .badge-mid { background: #fcf3d9; color: #b8860b; }
+  .badge-low { background: #e4f2e4; color: #3d7a40; }
+
+  .task-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .task-actions button {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .act-todo { background: #f0e6f0; color: #6b3d6b; }
+  .act-proc { background: #fdf0dc; color: #a86b20; }
+  .act-done { background: #e4f2e4; color: #3d7a40; }
+  .act-del { background: #fce4e4; color: var(--red); }
+  .task-actions button:hover { transform: translateY(-2px); }
+
+  /* ФОРМА */
+  .form-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .form-group { margin-bottom: 12px; }
+  .form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid var(--sand);
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: inherit;
+    transition: border 0.3s;
+    background: var(--cream);
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  /* ИДЕИ */
+  .idea-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 10px 20px;
+    border: 2px solid var(--sand);
+    background: var(--white);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-light);
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+  .filter-btn:hover { border-color: var(--gold); }
+  .filter-btn.active {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+
+  .idea {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--gray);
+    transition: all 0.3s;
+    animation: fadeUp 0.4s ease;
+  }
+  .idea.status-idea { border-left-color: #6b9bd2; }
+  .idea.status-proc { border-left-color: var(--yellow); }
+  .idea.status-done { border-left-color: var(--green); }
+
+  .idea-text {
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .idea-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--text-light);
+  }
+  .idea-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .b-idea { background: #e3eefc; color: #2a5f9e; }
+  .b-proc { background: #fcf3d9; color: #b8860b; }
+  .b-done { background: #e4f2e4; color: #3d7a40; }
+</style>
+</head>
+
+<body>
+
+<nav>
+  <div class="logo">📔 Мой день<span>.</span></div>
+  <div class="date" id="todayDate"></div>
+</nav>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('daily', this)">📅 Ежедневно</button>
+  <button class="tab" onclick="switchTab('important', this)">⭐ Важно</button>
+  <button class="tab" onclick="switchTab('ideas', this)">💡 Мои идеи</button>
+  <button class="tab" onclick="switchTab('analytics', this)">📊 Аналитика</button>
+  <button class="tab" onclick="switchTab('profile', this)">👤 Профиль</button>
+</div>
+
+<!-- ЕЖЕДНЕВНО -->
+<section id="daily" class="section active">
+  <div class="section-header">
+    <h1>📅 Ежедневные привычки</h1>
+    <p>Отмечайте выполненные — и держите серию!</p>
+  </div>
+
+  <div class="progress-info">
+    <div class="top">
+      <span>Прогресс дня</span>
+      <span id="progressText">0 из 5</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <div class="habit-list" id="habitList"></div>
+
+  <div class="form-card" style="margin-top:24px;">
+    <h3 style="color:var(--navy); margin-bottom:14px;">➕ Добавить привычку</h3>
+    <div class="form-group">
+      <input type="text" id="newHabit" placeholder="Например: медитация 10 минут">
+    </div>
+    <button class="btn btn-primary" onclick="addHabit()">Добавить</button>
+  </div>
+</section>
+
+<!-- ВАЖНО -->
+<section id="important" class="section">
+  <div class="section-header">
+    <h1>⭐ Важные задачи</h1>
+    <p>Канбан-доска: перетаскивайте задачи между колонками</p>
+  </div>
+
+  <div class="form-card">
+    <h3 style="color:var(--navy); margin-bottom:14px;">➕ Новая задача</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Название задачи</label>
+        <input type="text" id="taskTitle" placeholder="Что нужно сделать?">
+      </div>
+      <div class="form-group">
+        <label>Приоритет</label>
+        <select id="taskPriority">
+          <option value="high">🔴 Высокий</option>
+          <option value="mid" selected>🟡 Средний</option>
+          <option value="low">🟢 Низкий</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Дата</label>
+        <input type="date" id="taskDate">
+      </div>
+      <div class="form-group">
+        <label>Дедлайн</label>
+        <input type="date" id="taskDeadline">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Описание (необязательно)</label>
+      <textarea id="taskDesc" rows="2" placeholder="Подробности..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="addTask()">Добавить задачу</button>
+      <button class="btn btn-gray" onclick="clearTaskForm()">Очистить</button>
+    </div>
+  </div>
+
+  <div class="kanban">
+    <div class="kanban-col todo-col">
+      <h3>📋 К выполнению <span class="count" id="countTodo">0</span></h3>
+      <div id="colTodo"></div>
+    </div>
+    <div class="kanban-col proc-col">
+      <h3>⚙️ В процессе <span class="count" id="countProc">0</span></h3>
+      <div id="colProc"></div>
+    </div>
+    <div class="kanban-col done-col">
+      <h3>✅ Выполнено <span class="count" id="countDone">0</span></h3>
+      <div id="colDone"></div>
+    </div>
+  </div>
+</section>
+
+<!-- МОИ ИДЕИ -->
+<section id="ideas" class="section">
+  <div class="section-header">
+    <h1>💡 Мои идеи</h1>
+    <p>Записывайте быстро — текстом или голосом</p>
+  </div>
+
+  <div class="form-card">
+    <h3 style="color:var(--navy); margin-bottom:14px;">✨ Новая идея</h3>
+    <div class="form-group">
+      <textarea id="ideaText" rows="3" placeholder="Запишите идею..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="addIdea()">💾 Сохранить</button>
+      <button class="btn btn-gold" id="micBtn" onclick="startVoice()">🎤 Голосом</button>
+      <button class="btn btn-gray" onclick="clearIdeaForm()">Очистить</button>
+    </div>
+    <p id="voiceStatus" style="margin-top:10px; color:var(--text-light); font-size:14px;"></p>
+  </div>
+
+  <div class="idea-filters">
+    <button class="filter-btn active" onclick="filterIdeas('all', this)">Все</button>
+    <button class="filter-btn" onclick="filterIdeas('idea', this)">💡 Идея</button>
+    <button class="filter-btn" onclick="filterIdeas('proc', this)">🔧 В работе</button>
+    <button class="filter-btn" onclick="filterIdeas('done', this)">✅ Реализовано</button>
+  </div>
+
+  <div id="ideaList"></div>
+</section>
+
+<!-- АНАЛИТИКА -->
+<section id="analytics" class="section">
+  <div class="section-header">
+    <h1>📊 Аналитика</h1>
+    <p>Ваш прогресс в цифрах</p>
+  </div>
+  <div id="analyticsContent"></div>
+</section>
+
+<!-- ПРОФИЛЬ -->
+<section id="profile" class="section">
+  <div class="section-header">
+    <h1>👤 Профиль</h1>
+    <p>Ваши достижения и настройки</p>
+  </div>
+  <div id="profileContent"></div>
+</section>
+
+<script>
+  /* ==================== ДАННЫЕ ==================== */
+  const STORAGE_KEY = 'moy-den-data-v1';
+
+  let state = {
+    habits: [
+      { id: 1, text: 'Утренняя зарядка', done: false },
+      { id: 2, text: 'Прогулка с собакой', done: false },
+      { id: 3, text: 'Работа в Дзен', done: false },
+      { id: 4, text: 'Просмотр учебных видео', done: false },
+      { id: 5, text: '2 литра воды в течение дня', done: false }
+    ],
+    tasks: [
+      { id: 1, title: 'Выполнить урок 10 курса «Веб-кодинг»', priority: 'high', date: '2026-10-04', deadline: '', desc: '', status: 'todo' },
+      { id: 2, title: 'Посмотреть учебное видео', priority: 'mid', date: '', deadline: '', desc: '', status: 'todo' }
+    ],
+    ideas: [],
+    achievements: [],
+    lastDate: new Date().toDateString()
+  };
+
+  /* ==================== СОХРАНЕНИЕ ==================== */
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+  function load() {
+    try {
+      const d = localStorage.getItem(STORAGE_KEY);
+      if (d) state = Object.assign(state, JSON.parse(d));
+    } catch(e) {}
+  }
+
+  /* ==================== ДАТА ==================== */
+  function todayStr() {
+    const d = new Date();
+    return d.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  document.getElementById('todayDate').textContent = todayStr();
+
+  /* ==================== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ==================== */
+  function switchTab(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+    if (id === 'analytics') renderAnalytics();
+    if (id === 'profile') renderProfile();
+  }
+
+  /* ==================== ЕЖЕДНЕВНО ==================== */
+  function renderHabits() {
+    const list = document.getElementById('habitList');
+    if (!list) return;
+    list.innerHTML = '';
+    state.habits.forEach(h => {
+      const div = document.createElement('div');
+      div.className = 'habit' + (h.done ? ' done' : '');
+      div.innerHTML = `
+        <div class="habit-check">✓</div>
+        <div class="habit-text">${escapeHtml(h.text)}</div>
+        <button class="habit-delete" onclick="event.stopPropagation(); deleteHabit(${h.id})">🗑</button>
+      `;
+      div.onclick = () => { h.done = !h.done; save(); renderHabits(); };
+      list.appendChild(div);
+    });
+    updateProgress();
+  }
+  function updateProgress() {
+    const done = state.habits.filter(h => h.done).length;
+    const total = state.habits.length;
+    const percent = total ? Math.round((done / total) * 100) : 0;
+    const fill = document.getElementById('progressFill');
+    const text = document.getElementById('progressText');
+    if (fill) fill.style.width = percent + '%';
+    if (text) text.textContent = done + ' из ' + total;
+    checkAchievements();
+  }
+  function addHabit() {
+    const inp = document.getElementById('newHabit');
+    const text = inp.value.trim();
+    if (!text) return;
+    state.habits.push({ id: Date.now(), text: text, done: false });
+    inp.value = '';
+    save(); renderHabits();
+  }
+  function deleteHabit(id) {
+    state.habits = state.habits.filter(h => h.id !== id);
+    save(); renderHabits();
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* ==================== ВАЖНО — ЗАДАЧИ ==================== */
+  function renderTasks() {
+    ['todo', 'proc', 'done'].forEach(status => {
+      const col = document.getElementById('col' + status.charAt(0).toUpperCase() + status.slice(1));
+      if (!col) return;
+      col.innerHTML = '';
+    });
+
+    const groups = { todo: [], proc: [], done: [] };
+    state.tasks.forEach(t => {
+      if (!groups[t.status]) groups[t.status] = [];
+      groups[t.status].push(t);
+    });
+
+    ['todo', 'proc', 'done'].forEach(status => {
+      const col = document.getElementById('col' + status.charAt(0).toUpperCase() + status.slice(1));
+      if (!col) return;
+      groups[status].forEach(t => {
+        const div = document.createElement('div');
+        const prioClass = t.priority === 'high' ? 'prio-high' : (t.priority === 'mid' ? 'prio-mid' : 'prio-low');
+        const prioLabel = t.priority === 'high' ? '🔴 Высокий' : (t.priority === 'mid' ? '🟡 Средний' : '🟢 Низкий');
+        const badgeClass = t.priority === 'high' ? 'badge-high' : (t.priority === 'mid' ? 'badge-mid' : 'badge-low');
+        div.className = 'task ' + prioClass;
+        div.innerHTML = `
+          <div class="task-title">${escapeHtml(t.title)}</div>
+          <div class="task-meta">
+            <span class="task-badge ${badgeClass}">${prioLabel}</span>
+            ${t.date ? '<span>📅 ' + t.date + '</span>' : ''}
+            ${t.deadline ? '<span>⏰ до ' + t.deadline + '</span>' : ''}
+          </div>
+          ${t.desc ? '<div style="font-size:14px; color:var(--text-light); margin-bottom:8px;">' + escapeHtml(t.desc) + '</div>' : ''}
+          <div class="task-actions">
+            ${status !== 'todo' ? '<button class="act-todo" onclick="moveTask(' + t.id + ', todo)">← К выполнению</button>' : ''}
+            ${status !== 'proc' ? '<button class="act-proc" onclick="moveTask(' + t.id + ', proc)">⚙️ В процессе</button>' : ''}
+            ${status !== 'done' ? '<button class="act-done" onclick="moveTask(' + t.id + ', done)">✓ Выполнено</button>' : ''}
+            <button class="act-del" onclick="deleteTask(${t.id})">🗑</button>
+          </div>
+        `;
+        col.appendChild(div);
+      });
+    });
+
+    document.getElementById('countTodo').textContent = groups.todo.length;
+    document.getElementById('countProc').textContent = groups.proc.length;
+    document.getElementById('countDone').textContent = groups.done.length;
+
+    checkAchievements();
+  }
+
+  function addTask() {
+    const title = document.getElementById('taskTitle').value.trim();
+    if (!title) { alert('Введите название задачи'); return; }
+    state.tasks.push({
+      id: Date.now(),
+      title: title,
+      priority: document.getElementById('taskPriority').value,
+      date: document.getElementById('taskDate').value,
+      deadline: document.getElementById('taskDeadline').value,
+      desc: document.getElementById('taskDesc').value.trim(),
+      status: 'todo'
+    });
+    clearTaskForm();
+    save(); renderTasks();
+  }
+
+  function clearTaskForm() {
+    document.getElementById('taskTitle').value = '';
+    document.getElementById('taskPriority').value = 'mid';
+    document.getElementById('taskDate').value = '';
+    document.getElementById('taskDeadline').value = '';
+    document.getElementById('taskDesc').value = '';
+  }
+
+  function moveTask(id, status) {
+    const t = state.tasks.find(x => x.id === id);
+    if (t) { t.status = status; save(); renderTasks(); }
+  }
+
+  function deleteTask(id) {
+    if (!confirm('Удалить задачу?')) return;
+    state.tasks = state.tasks.filter(t => t.id !== id);
+    save(); renderTasks();
+  }
+
+  /* ==================== ИДЕИ ==================== */
+  let currentFilter = 'all';
+  let recognition = null;
+  let isRecording = false;
+
+  function renderIdeas() {
+    const list = document.getElementById('ideaList');
+    if (!list) return;
+    list.innerHTML = '';
+    let filtered = state.ideas;
+    if (currentFilter !== 'all') filtered = state.ideas.filter(i => i.status === currentFilter);
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="card" style="text-align:center; color:var(--text-light);">Пока нет идей. Запишите первую!</div>';
+      return;
+    }
+
+    filtered.slice().reverse().forEach(i => {
+      const div = document.createElement('div');
+      div.className = 'idea status-' + i.status;
+      const badge = i.status === 'idea' ? '<span class="idea-badge b-idea">💡 Идея</span>' :
+                    i.status === 'proc' ? '<span class="idea-badge b-proc">🔧 В работе</span>' :
+                    '<span class="idea-badge b-done">✅ Реализовано</span>';
+      div.innerHTML = `
+        <div class="idea-text">${escapeHtml(i.text)}</div>
+        <div class="idea-meta">
+          ${badge}
+          <span>📅 ${i.date || ''}</span>
+        </div>
+        <div class="task-actions">
+          ${i.status !== 'idea' ? '<button class="act-todo" onclick="setIdeaStatus(' + i.id + ', idea)">💡 Идея</button>' : ''}
+          ${i.status !== 'proc' ? '<button class="act-proc" onclick="setIdeaStatus(' + i.id + ', proc)">🔧 В работе</button>' : ''}
+          ${i.status !== 'done' ? '<button class="act-done" onclick="setIdeaStatus(' + i.id + ', done)">✅ Реализовано</button>' : ''}
+          <button class="act-del" onclick="deleteIdea(${i.id})">🗑</button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+    checkAchievements();
+  }
+
+  function addIdea() {
+    const text = document.getElementById('ideaText').value.trim();
+    if (!text) { alert('Введите идею'); return; }
+    state.ideas.push({
+      id: Date.now(),
+      text: text,
+      status: 'idea',
+      date: new Date().toLocaleDateString('ru-RU')
+    });
+    clearIdeaForm();
+    save(); renderIdeas();
+  }
+
+  function clearIdeaForm() {
+    document.getElementById('ideaText').value = '';
+    document.getElementById('voiceStatus').textContent = '';
+  }
+
+  function setIdeaStatus(id, status) {
+    const i = state.ideas.find(x => x.id === id);
+    if (i) { i.status = status; save(); renderIdeas(); }
+  }
+
+  function deleteIdea(id) {
+    if (!confirm('Удалить идею?')) return;
+    state.ideas = state.ideas.filter(i => i.id !== id);
+    save(); renderIdeas();
+  }
+
+  function filterIdeas(status, btn) {
+    currentFilter = status;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderIdeas();
+  }
+
+  function startVoice() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const status = document.getElementById('voiceStatus');
+    if (!SR) {
+      status.textContent = '⚠️ Голосовой ввод не поддерживается вашим браузером. Попробуйте Яндекс.Браузер или Chrome.';
+      return;
+    }
+    if (isRecording) {
+      recognition.stop();
+      return;
+    }
+    recognition = new SR();
+    recognition.lang = 'ru-RU';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      isRecording = true;
+      document.getElementById('micBtn').textContent = '⏹ Остановить';
+      status.textContent = '🎤 Говорите...';
+    };
+    recognition.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      const ta = document.getElementById('ideaText');
+      ta.value = (ta.value ? ta.value + ' ' : '') + text;
+      status.textContent = '✅ Распознано: ' + text;
+    };
+    recognition.onerror = (e) => {
+      status.textContent = '❌ Ошибка распознавания: ' + e.error;
+    };
+    recognition.onend = () => {
+      isRecording = false;
+      document.getElementById('micBtn').textContent = '🎤 Голосом';
+    };
+    recognition.start();
+  }
+
+  /* ==================== АНАЛИТИКА ==================== */
+  function renderAnalytics() {
+    const c = document.getElementById('analyticsContent');
+    if (!c) return;
+    const doneHabits = state.habits.filter(h => h.done).length;
+    const totalHabits = state.habits.length;
+    const tasksTodo = state.tasks.filter(t => t.status === 'todo').length;
+    const tasksProc = state.tasks.filter(t => t.status === 'proc').length;
+    const tasksDone = state.tasks.filter(t => t.status === 'done').length;
+    const ideasIdea = state.ideas.filter(i => i.status === 'idea').length;
+    const ideasProc = state.ideas.filter(i => i.status === 'proc').length;
+    const ideasDone = state.ideas.filter(i => i.status === 'done').length;
+
+    c.innerHTML = `
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px;">
+        <div class="card"><div style="font-size:38px; font-weight:800; color:var(--navy);">${doneHabits}/${totalHabits}</div><div style="color:var(--text-light);">Привычек сегодня</div></div>
+        <div class="card"><div style="font-size:38px; font-weight:800; color:var(--navy);">${tasksTodo}</div><div style="color:var(--text-light);">Задач к выполнению</div></div>
+        <div class="card"><div style="font-size:38px; font-weight:800; color:var(--orange);">${tasksProc}</div><div style="color:var(--text-light);">Задач в процессе</div></div>
+        <div class="card"><div style="font-size:38px; font-weight:800; color:var(--green);">${tasksDone}</div><div style="color:var(--text-light);">Задач выполнено</div></div>
+        <div class="card"><div style="font-size:38px; font-weight:800; color:#6b9bd2;">${ideasIdea}</div><div style="color:var(--text-light);">Идей записано</div></div>
+        <div class="card"><div style="font-size:38px; font-weight:800; color:var(--yellow);">${ideasProc}</div><div style="color:var(--text-light);">Идей в работе</div></div>
+        <div class="card"><div style="font-size:38px; font-weight:800; color:var(--green);">${ideasDone}</div><div style="color:var(--text-light);">Идей реализовано</div></div>
+      </div>
+      <div class="card" style="margin-top:24px;">
+        <h3 style="color:var(--navy); margin-bottom:12px;">🔥 Серия</h3>
+        <p style="color:var(--text-light);">Отмечайте привычки каждый день — серия растёт!</p>
+      </div>
+    `;
+  }
+
+  /* ==================== ДОСТИЖЕНИЯ ==================== */
+  const ACHIEVEMENTS = [
+    { id: 'first', icon: '🥉', name: 'Первый шаг', desc: 'Выполнена первая привычка', check: s => s.habits.some(h => h.done) },
+    { id: 'three', icon: '⭐', name: 'Три из пяти', desc: '3 привычки выполнены за день', check: s => s.habits.filter(h => h.done).length >= 3 },
+    { id: 'all5', icon: '🏅', name: 'Все привычки', desc: 'Все 5 привычек выполнены', check: s => s.habits.length > 0 && s.habits.every(h => h.done) },
+    { id: 'task1', icon: '📋', name: 'Планировщик', desc: 'Первая задача выполнена', check: s => s.tasks.some(t => t.status === 'done') },
+    { id: 'task5', icon: '🎯', name: 'Пять задач', desc: '5 задач выполнено', check: s => s.tasks.filter(t => t.status === 'done').length >= 5 },
+    { id: 'idea1', icon: '💡', name: 'Генератор идей', desc: 'Записана первая идея', check: s => s.ideas.length >= 1 },
+    { id: 'idea10', icon: '🧠', name: 'Кладезь идей', desc: 'Записано 10 идей', check: s => s.ideas.length >= 10 },
+    { id: 'ideaDone', icon: '🔧', name: 'Реализатор', desc: 'Идея реализована', check: s => s.ideas.some(i => i.status === 'done') },
+    { id: 'ideaDone5', icon: '🚀', name: 'Мастер идей', desc: '5 идей реализовано', check: s => s.ideas.filter(i => i.status === 'done').length >= 5 }
+  ];
+
+  function checkAchievements() {
+    ACHIEVEMENTS.forEach(a => {
+      if (!state.achievements.includes(a.id) && a.check(state)) {
+        state.achievements.push(a.id);
+        save();
+        showToast('🏆 Новая награда: ' + a.name);
+      }
+    });
+  }
+
+  function showToast(text) {
+    const t = document.createElement('div');
+    t.textContent = text;
+    t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:16px 28px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.3);z-index:9999;font-weight:600;animation:fadeUp 0.4s;';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+
+  function renderProfile() {
+    const c = document.getElementById('profileContent');
+    if (!c) return;
+    const unlocked = ACHIEVEMENTS.filter(a => state.achievements.includes(a.id));
+    c.innerHTML = `
+      <div class="card" style="margin-bottom:20px;">
+        <h3 style="color:var(--navy); margin-bottom:8px;">Андрей Георгиевич</h3>
+        <p style="color:var(--text-light);">Пользователь приложения «Мой день»</p>
+        <p style="color:var(--text-light); margin-top:8px;">🏆 Наград получено: <b>${unlocked.length}</b> из ${ACHIEVEMENTS.length}</p>
+      </div>
+      <h3 style="color:var(--navy); margin:24px 0 14px;">🏆 Достижения</h3>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px;">
+        ${ACHIEVEMENTS.map(a => {
+          const got = state.achievements.includes(a.id);
+          return `<div class="card" style="opacity:${got ? 1 : 0.4};">
+            <div style="font-size:40px;">${a.icon}</div>
+            <div style="font-weight:700; color:var(--navy); margin:8px 0 4px;">${a.name}</div>
+            <div style="color:var(--text-light); font-size:14px;">${a.desc}</div>
+            ${got ? '<div style="color:var(--green); font-weight:700; margin-top:8px;">✓ Получено</div>' : ''}
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  /* ==================== ЗАПУСК ==================== */
+  load();
+  // Проверяем смену дня — сбрасываем галочки привычек
+  const today = new Date().toDateString();
+  if (state.lastDate !== today) {
+    state.habits.forEach(h => h.done = false);
+    state.lastDate = today;
+    save();
+  }
+  renderHabits();
+  renderTasks();
+  renderIdeas();
+</script>
+
+</body>
+</html>
